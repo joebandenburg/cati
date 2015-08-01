@@ -1,11 +1,14 @@
 import React from "react";
 import Router from "react-router";
+import SocketIO from "socket.io-client";
 import App from "./components/App";
 import Home from "./components/Home";
 import Game from "./components/Game";
 
 const Route = Router.Route;
 const DefaultRoute = Router.DefaultRoute;
+
+const socket = SocketIO();
 
 const routes = (
     <Route handler={App}>

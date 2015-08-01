@@ -26,7 +26,9 @@ browersifyOpts = assign({}, watchify.args, browersifyOpts);
 var bify = browserify(browersifyOpts)
     .external("react")
     .external("react-router")
-    .external("material-ui");
+    .external("material-ui")
+    .external("socket.io-client")
+    .external("lodash");
 
 gulp.task("copy-assets", function() {
     return gulp.src("static/**/*")
@@ -41,6 +43,8 @@ gulp.task("bundle-vendor", function() {
         .require(resolve.sync("react/addons"), { expose: "react" })
         .require(resolve.sync("react-router"), { expose: "react-router" })
         .require(resolve.sync("material-ui"), { expose: "material-ui" })
+        .require(resolve.sync("socket.io-client"), { expose: "socket.io-client" })
+        .require(resolve.sync("lodash"), { expose: "lodash" })
         .add("client/vendor.js")
         .transform(envify, { global: true })
         .bundle()
