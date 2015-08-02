@@ -35,6 +35,11 @@ gulp.task("copy-assets", function() {
         .pipe(gulp.dest("dist/public"));
 });
 
+gulp.task("copy-server-assets", function() {
+    return gulp.src("server/**/*.json")
+        .pipe(gulp.dest("dist/server"));
+});
+
 gulp.task("bundle-vendor", function() {
     var p = browserify({
             transform: [babelify, envify],
@@ -75,12 +80,12 @@ gulp.task("transpile", function() {
         .pipe(gulp.dest("dist")));
 });
 
-gulp.task("server", ["transpile"], function() {
+gulp.task("server", ["copy-server-assets", "transpile"], function() {
     if (server) server.kill();
     server = spawn("node", ["dist/index.js"], {stdio: "inherit"});
 });
 
-gulp.task("default", ["bundle-vendor", "transpile", "copy-assets", "bundle"]);
+gulp.task("default", ["bundle-vendor", "transpile", "copy-assets", "copy-server-assets", "bundle"]);
 
 gulp.task("watch", ["server", "copy-assets"], function() {
     gulp.watch(["index.js", "server/**/*"], ["server"]);

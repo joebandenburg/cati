@@ -1,6 +1,7 @@
 import React from "react";
 import mui from "material-ui";
-import GameModel from "../Game";
+import SocketIO from "socket.io-client";
+
 
 class Card extends React.Component {
     constructor() {
@@ -37,7 +38,8 @@ class Card extends React.Component {
                        transitionEnabled={true}
                        style={style}
                        onMouseOver={this.onMouseOver.bind(this)}
-                       onMouseOut={this.onMouseOut.bind(this)}>
+                       onMouseOut={this.onMouseOut.bind(this)}
+                       onClick={this.props.onClick}>
                 {this.props.children}
             </mui.Paper>
         );
@@ -48,12 +50,26 @@ class Game extends React.Component {
     constructor() {
         super();
         this.state = {
-            game: new GameModel({
-                questionCount: 1
-            })
+            loading: true
         };
     }
+    componentDidMount() {
+        this.socket = SocketIO();
+        this.socket.on("client game state update", newGameState => {
+            newGameState.loading = false;
+            this.setState(newGameState);
+        });
+    }
+    answer(answerIndex) {
+        this.socket.emit("answer", [answerIndex]);
+    }
+    vote(vote) {
+        this.socket.emit("vote", vote);
+    }
     render() {
+        if (this.state.loading) {
+            return <div></div>;
+        }
         const containerStyle = {
             position: "absolute",
             left: 0,
@@ -82,9 +98,10 @@ class Game extends React.Component {
             width: "100%",
             padding: 24
         };
-        const answers = this.state.game.players[0].answers.slice(0, 5);
-        const cards = answers.map((a, n) => <Card i={n} n={5} key={n}>{a}</Card>);
-        const question = this.state.game.questions[0];
+        const player = this.state.players[this.state.playerIndex];
+        const answers = player.private.cards;
+        const cards = answers.map((a, n) => <Card i={n} n={5} key={n} onClick={this.answer.bind(this, n)}>{a}</Card>);
+        const question = this.state.question;
         const pickMessage = (question.pick === 1) ? "Pick a card." : "Pick " + question.pick + " cards.";
         return (
             <div style={containerStyle}>
