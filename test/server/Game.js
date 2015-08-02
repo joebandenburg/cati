@@ -606,6 +606,55 @@ describe("Game", () => {
             assert.equal(g.state.type, stateType.ANSWERING);
         });
     });
+    describe("next answering state", () => {
+        let g;
+        let state;
+        let winningPlayerIndex;
+        beforeEach(() => {
+            g = new Game({
+                playerCount: 5,
+                questionCount: 10,
+                answersInHandCount: 5,
+                answerTimeoutSeconds: 100,
+                voteTimeoutSeconds: 200
+            });
+            g.answer(0, _.range(g.state.question.pick));
+            g.answer(1, _.range(g.state.question.pick));
+            g.answer(2, _.range(g.state.question.pick));
+            g.answer(3, _.range(g.state.question.pick));
+            g.answer(4, _.range(g.state.question.pick));
+            winningPlayerIndex = g.state.voteeIndex;
+            const voterIndex = g.state.private.voteOrder[0];
+            g.vote(voterIndex, voteType.UP);
+            clock.tick(200000 * 5 + 10000);
+            state = g.state;
+        });
+        it("is of type answering", () => {
+            assert.equal(state.type, stateType.ANSWERING);
+        });
+        it("has 5 players", () => {
+            assert.equal(state.players.length, 5);
+        });
+        it("has a question", () => {
+            assert.isObject(state.question);
+        });
+        it("has 8 remaining questions", () => {
+            assert.equal(state.private.remainingQuestions.length, 8);
+        });
+        describe("each player", () => {
+            it("has not answered", () => {
+                assert.deepEqual(_.pluck(state.players, "answered"), [false, false, false, false, false]);
+            });
+            it("has 5 cards", () => {
+                assert.deepEqual(state.players.map(p => p.private.cards.length), [5, 5, 5, 5, 5]);
+            });
+            it("has an updated score", () => {
+                const scores = [0, 0, 0, 0, 0];
+                scores[winningPlayerIndex] = 10;
+                assert.deepEqual(_.pluck(state.players, "score"), scores);
+            });
+        });
+    });
     describe("final scores state", () => {
         let g;
         beforeEach(() => {
