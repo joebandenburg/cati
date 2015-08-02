@@ -13,7 +13,7 @@ function pickRandomAnswers(indexes, count) {
     return pickRandomSubset(indexes, count).map(i => cards.whiteCards[i]);
 }
 
-const stateType = {
+export const stateType = {
     ANSWERING: 1,
     VOTING: 2,
     SCORES: 3,
@@ -131,7 +131,6 @@ export default class Game {
         this._setState(newState);
     }
     _setState(newState) {
-        console.log("_setState", JSON.stringify(newState));
         this.state = newState;
         setTimeout(() => {
             if (this.onStateChange) {

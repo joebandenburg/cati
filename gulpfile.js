@@ -11,6 +11,8 @@ var uglify = require("gulp-uglify");
 var envify = require("envify");
 var babelify = require("babelify");
 var resolve = require("resolve");
+var mocha = require("gulp-mocha");
+
 var server;
 
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
@@ -29,6 +31,14 @@ var bify = browserify(browersifyOpts)
     .external("material-ui")
     .external("socket.io-client")
     .external("lodash");
+
+gulp.task("test-server", function() {
+    return gulp.src("test/server/**/*.js", {read: false})
+        .pipe(mocha({
+            reporter: "spec",
+            require: ["babel/register"]
+        }));
+});
 
 gulp.task("copy-assets", function() {
     return gulp.src("static/**/*")
