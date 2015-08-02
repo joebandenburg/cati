@@ -55,7 +55,6 @@ export default class Game {
         const answers = pickRandomAnswers(_.range(cards.whiteCards.length), totalAnswerCount);
         const players = _.range(playerCount).map(i => ({
             score: 0,
-            position: i,
             private: {
                 cards: []
             }
@@ -156,7 +155,6 @@ export default class Game {
             },
             players: oldState.players.map((oldPlayer, i) => ({
                 score: oldPlayer.score,
-                position: oldPlayer.position,
                 answered: false,
                 private: {
                     cards: oldPlayer.private.cards.concat(newCards[i])
@@ -183,7 +181,6 @@ export default class Game {
             if (i === newState.voteeIndex) {
                 return {
                     score: p.score,
-                    position: p.position,
                     answered: p.answered,
                     answers: p.private.answers,
                     questionScore: 0,
@@ -192,8 +189,8 @@ export default class Game {
             } else {
                 return {
                     score: p.score,
-                    position: p.position,
                     answered: p.answered,
+                    answers: p.answers,
                     vote: null,
                     questionScore: p.questionScore,
                     private: p.private
@@ -210,21 +207,17 @@ export default class Game {
         }, this.voteTimeoutSeconds * 1000);
     }
     _transitionToScoresState(oldState = this.state) {
-        const newPositions = _(oldState.players)
-            .map(p => p.score + p.questionScore)
-            .zip(_.range(this.playerCount))
-            .sortBy(a => a[0])
-            .unzip()
-            .value()[0];
         const newState = {
             type: (oldState.private.remainingQuestions.length === 0) ? stateType.FINAL_SCORES : stateType.SCORES,
+            question: oldState.question,
             private: oldState.private,
             players: oldState.players.map((p, i) => ({
-                oldScore: p.score,
                 score: p.score + p.questionScore,
-                oldPosition: p.position,
-                position: newPositions[i],
-                private: p.private
+                answered: p.answered,
+                answers: p.answers,
+                questionScore: p.questionScore,
+                private: p.private,
+                oldScore: p.score
             }))
         };
         this._setState(newState);

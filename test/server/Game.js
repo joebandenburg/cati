@@ -59,9 +59,6 @@ describe("Game", () => {
             it("has a score of 0", () => {
                 assert.deepEqual(_.pluck(state.players, "score"), [0, 0, 0, 0, 0]);
             });
-            it("has a position based on their index", () => {
-                assert.deepEqual(_.pluck(state.players, "position"), [0, 1, 2, 3, 4]);
-            });
         });
     });
     describe("getPlayerState", () => {
@@ -171,9 +168,6 @@ describe("Game", () => {
                 it("has a score of 0", () => {
                     assert.deepEqual(_.pluck(state.players, "score"), [0, 0, 0, 0, 0]);
                 });
-                it("has a position based on their index", () => {
-                    assert.deepEqual(_.pluck(state.players, "position"), [0, 1, 2, 3, 4]);
-                });
             });
         });
         it("moves to voting state when last player answers", () => {
@@ -209,6 +203,62 @@ describe("Game", () => {
         it("throws if any answer index is out of bounds", () => {
             assert.throws(() => {
                 g.answer(0, _.range(g.state.question.pick).map(i => i + 10));
+            });
+        });
+        it("throws if in voting state", () => {
+            g = new Game({
+                playerCount: 5,
+                questionCount: 10,
+                answersInHandCount: 5,
+                answerTimeoutSeconds: 100,
+                voteTimeoutSeconds: 200
+            });
+            g.answer(0, _.range(g.state.question.pick));
+            g.answer(1, _.range(g.state.question.pick));
+            g.answer(2, _.range(g.state.question.pick));
+            g.answer(3, _.range(g.state.question.pick));
+            g.answer(4, _.range(g.state.question.pick));
+            assert.equal(g.state.type, stateType.VOTING);
+            assert.throws(() => {
+                g.answer(0, _.range(g.state.question.pick));
+            });
+        });
+        it("throws if in scores state", () => {
+            g = new Game({
+                playerCount: 5,
+                questionCount: 10,
+                answersInHandCount: 5,
+                answerTimeoutSeconds: 100,
+                voteTimeoutSeconds: 200
+            });
+            g.answer(0, _.range(g.state.question.pick));
+            g.answer(1, _.range(g.state.question.pick));
+            g.answer(2, _.range(g.state.question.pick));
+            g.answer(3, _.range(g.state.question.pick));
+            g.answer(4, _.range(g.state.question.pick));
+            clock.tick(200000 * 5);
+            assert.equal(g.state.type, stateType.SCORES);
+            assert.throws(() => {
+                g.answer(0, _.range(g.state.question.pick));
+            });
+        });
+        it("throws if in final scores state", () => {
+            g = new Game({
+                playerCount: 5,
+                questionCount: 1,
+                answersInHandCount: 5,
+                answerTimeoutSeconds: 100,
+                voteTimeoutSeconds: 200
+            });
+            g.answer(0, _.range(g.state.question.pick));
+            g.answer(1, _.range(g.state.question.pick));
+            g.answer(2, _.range(g.state.question.pick));
+            g.answer(3, _.range(g.state.question.pick));
+            g.answer(4, _.range(g.state.question.pick));
+            clock.tick(200000 * 5);
+            assert.equal(g.state.type, stateType.FINAL_SCORES);
+            assert.throws(() => {
+                g.answer(0, _.range(g.state.question.pick));
             });
         });
     });
@@ -264,12 +314,12 @@ describe("Game", () => {
             it("has a score of 0", () => {
                 assert.deepEqual(_.pluck(state.players, "score"), [0, 0, 0, 0, 0]);
             });
-            it("has a position based on their index", () => {
-                assert.deepEqual(_.pluck(state.players, "position"), [0, 1, 2, 3, 4]);
-            });
         });
         it("has a questionScore of 0 for the votee", () => {
-            assert.deepEqual(state.players[state.voteeIndex].questionScore, 0);
+            assert.equal(state.players[state.voteeIndex].questionScore, 0);
+        });
+        it("has a public set of answers for the votee", () => {
+            assert.equal(state.players[state.voteeIndex].answers.length, state.question.pick);
         });
         it("has a undefined vote for the votee", () => {
             assert.isUndefined(state.players[state.voteeIndex].vote);
@@ -277,6 +327,10 @@ describe("Game", () => {
         it("has a questionScore of undefined for every player except the votee", () => {
             const otherPlayers = _.at(state.players, state.private.voteOrder);
             assert.deepEqual(_.pluck(otherPlayers, "questionScore"), [undefined, undefined, undefined, undefined]);
+        });
+        it("does not have a public set of answers for every player except the votee", () => {
+            const otherPlayers = _.at(state.players, state.private.voteOrder);
+            assert.deepEqual(_.pluck(otherPlayers, "answers"), [undefined, undefined, undefined, undefined]);
         });
         it("has a vote of null for every player except the votee", () => {
             const otherPlayers = _.at(state.players, state.private.voteOrder);
@@ -288,6 +342,19 @@ describe("Game", () => {
             assert.equal(state.voteeIndex, firstVoteeIndex);
             clock.tick(1);
             assert.notEqual(g.state.voteeIndex, firstVoteeIndex);
+        });
+        it("resets votes when transitioning to next votee", () => {
+            const voterIndex = g.state.private.voteOrder[1]; // Pick a voter that isn't going to the be the next votee
+            g.vote(voterIndex, voteType.UP);
+            clock.tick(200000);
+            assert.equal(g.state.players[voterIndex].vote, null);
+        });
+        it("keeps question score of previous votee when transitioning to next votee", () => {
+            const voteeIndex = g.state.voteeIndex;
+            const voterIndex = g.state.private.voteOrder[0];
+            g.vote(voterIndex, voteType.UP);
+            clock.tick(200000);
+            assert.equal(g.state.players[voteeIndex].questionScore, 10);
         });
     });
     describe("vote", () => {
@@ -369,9 +436,9 @@ describe("Game", () => {
                 beforeEach(() => {
                     otherPlayers = _.at(state.players, _.without(state.private.voteOrder, voterIndex));
                 });
-                it("has not voted", () => {
+                it("have not voted", () => {
                     assert.deepEqual(_.pluck(otherPlayers, "vote"), [null, null, null]);
-                })
+                });
             });
             describe("each player", () => {
                 it("has answered", () => {
@@ -384,10 +451,11 @@ describe("Game", () => {
                 it("has a score of 0", () => {
                     assert.deepEqual(_.pluck(state.players, "score"), [0, 0, 0, 0, 0]);
                 });
-                it("has a position based on their index", () => {
-                    assert.deepEqual(_.pluck(state.players, "position"), [0, 1, 2, 3, 4]);
-                });
             });
+        });
+        it("decreases the player's score if voted down", () => {
+            g.vote(voterIndex, voteType.DOWN);
+            assert.equal(g.state.players[g.state.voteeIndex].questionScore, -5);
         });
         it("doesn't move to the next vote when last player votes", () => {
             const voteeIndex = g.state.voteeIndex;
@@ -414,59 +482,19 @@ describe("Game", () => {
                 g.answer(g.state.voteeIndex, voteType.UP);
             });
         });
-    });
-    describe("answering state", () => {
-        let g;
-        beforeEach(() => {
+        it("throws if in answering state", () => {
             g = new Game({
                 playerCount: 5,
                 questionCount: 10,
                 answersInHandCount: 5,
-                answerTimeoutSeconds: 100
+                answerTimeoutSeconds: 100,
+                voteTimeoutSeconds: 200
             });
-        });
-        it("can answer", () => {
-            assert.doesNotThrow(() => {
-                g.answer(0, _.range(g.state.question.pick));
-            });
-        });
-        it("can't vote", () => {
             assert.throws(() => {
                 g.vote(0, voteType.UP);
             });
         });
-    });
-    describe("voting state", () => {
-        let g;
-        beforeEach(() => {
-            g = new Game({
-                playerCount: 5,
-                questionCount: 10,
-                answersInHandCount: 5,
-                answerTimeoutSeconds: 100
-            });
-            g.answer(0, _.range(g.state.question.pick));
-            g.answer(1, _.range(g.state.question.pick));
-            g.answer(2, _.range(g.state.question.pick));
-            g.answer(3, _.range(g.state.question.pick));
-            g.answer(4, _.range(g.state.question.pick));
-            assert.equal(g.state.type, stateType.VOTING);
-        });
-        it("can't answer", () => {
-            assert.throws(() => {
-                g.answer(0, _.range(g.state.question.pick));
-            });
-        });
-        it("can vote", () => {
-            const voterIndex = (g.state.voteeIndex === 0) ? 1 : 0;
-            assert.doesNotThrow(() => {
-                g.vote(voterIndex, voteType.UP);
-            });
-        });
-    });
-    describe("scores state", () => {
-        let g;
-        beforeEach(() => {
+        it("throws if in scores state", () => {
             g = new Game({
                 playerCount: 5,
                 questionCount: 10,
@@ -481,16 +509,101 @@ describe("Game", () => {
             g.answer(4, _.range(g.state.question.pick));
             clock.tick(200000 * 5);
             assert.equal(g.state.type, stateType.SCORES);
-        });
-        it("can't answer", () => {
-            assert.throws(() => {
-                g.answer(0, _.range(g.state.question.pick));
-            });
-        });
-        it("can't vote", () => {
             assert.throws(() => {
                 g.vote(0, voteType.UP);
             });
+        });
+        it("throws if in final scores state", () => {
+            g = new Game({
+                playerCount: 5,
+                questionCount: 1,
+                answersInHandCount: 5,
+                answerTimeoutSeconds: 100,
+                voteTimeoutSeconds: 200
+            });
+            g.answer(0, _.range(g.state.question.pick));
+            g.answer(1, _.range(g.state.question.pick));
+            g.answer(2, _.range(g.state.question.pick));
+            g.answer(3, _.range(g.state.question.pick));
+            g.answer(4, _.range(g.state.question.pick));
+            clock.tick(200000 * 5);
+            assert.equal(g.state.type, stateType.FINAL_SCORES);
+            assert.throws(() => {
+                g.vote(0, voteType.UP);
+            });
+        });
+    });
+    describe("scores state", () => {
+        let g;
+        let state;
+        let winningPlayerIndex;
+        beforeEach(() => {
+            g = new Game({
+                playerCount: 5,
+                questionCount: 10,
+                answersInHandCount: 5,
+                answerTimeoutSeconds: 100,
+                voteTimeoutSeconds: 200
+            });
+            g.answer(0, _.range(g.state.question.pick));
+            g.answer(1, _.range(g.state.question.pick));
+            g.answer(2, _.range(g.state.question.pick));
+            g.answer(3, _.range(g.state.question.pick));
+            g.answer(4, _.range(g.state.question.pick));
+            winningPlayerIndex = g.state.voteeIndex;
+            const voterIndex = g.state.private.voteOrder[0];
+            g.vote(voterIndex, voteType.UP);
+            clock.tick(200000 * 5);
+            state = g.state;
+        });
+        it("is of type scores", () => {
+            assert.equal(state.type, stateType.SCORES);
+        });
+        it("has 5 players", () => {
+            assert.equal(state.players.length, 5);
+        });
+        it("has a question", () => {
+            assert.isObject(state.question);
+        });
+        it("has 9 remaining questions", () => {
+            assert.equal(state.private.remainingQuestions.length, 9);
+        });
+        it("does not have an index of a voter", () => {
+            assert.isUndefined(state.voteeIndex);
+        });
+        describe("each player", () => {
+            it("has answered", () => {
+                assert.deepEqual(_.pluck(state.players, "answered"), [true, true, true, true, true]);
+            });
+            it("has answers", () => {
+                assert.deepEqual(state.players.map(p => p.answers.length === g.state.question.pick), [true, true, true, true, true]);
+            });
+            it("has cards", () => {
+                const cards = 5 - state.question.pick;
+                assert.deepEqual(state.players.map(p => p.private.cards.length), [cards, cards, cards, cards, cards]);
+            });
+            it("has an updated score", () => {
+                const scores = [0, 0, 0, 0, 0];
+                scores[winningPlayerIndex] = 10;
+                assert.deepEqual(_.pluck(state.players, "score"), scores);
+            });
+            it("has an old score of 0", () => {
+                assert.deepEqual(_.pluck(state.players, "oldScore"), [0, 0, 0, 0, 0]);
+            });
+            it("has a questionScore", () => {
+                const scores = [0, 0, 0, 0, 0];
+                scores[winningPlayerIndex] = 10;
+                assert.deepEqual(_.pluck(state.players, "questionScore"), scores);
+            });
+            it("does not have a vote", () => {
+                assert.deepEqual(_.pluck(state.players, "vote"), [undefined, undefined, undefined, undefined, undefined]);
+            });
+        });
+        it("moves to answering state after 10 seconds", () => {
+            clock.tick(9999);
+            assert.equal(state.type, stateType.SCORES);
+            clock.tick(1);
+            assert.equal(g.state.type, stateType.ANSWERING);
         });
     });
     describe("final scores state", () => {
@@ -510,16 +623,6 @@ describe("Game", () => {
             g.answer(4, _.range(g.state.question.pick));
             clock.tick(200000 * 5);
             assert.equal(g.state.type, stateType.FINAL_SCORES);
-        });
-        it("can't answer", () => {
-            assert.throws(() => {
-                g.answer(0, _.range(g.state.question.pick));
-            });
-        });
-        it("can't vote", () => {
-            assert.throws(() => {
-                g.vote(0, voteType.UP);
-            });
         });
     });
 });
