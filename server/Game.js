@@ -54,6 +54,8 @@ export default class Game {
         }
         const answers = pickRandomAnswers(_.range(cards.whiteCards.length), totalAnswerCount);
         const players = _.range(playerCount).map(i => ({
+            score: 0,
+            position: i,
             private: {
                 cards: []
             }
@@ -153,6 +155,8 @@ export default class Game {
                 remainingAnswers: newRemainingAnswers
             },
             players: oldState.players.map((oldPlayer, i) => ({
+                score: oldPlayer.score,
+                position: oldPlayer.position,
                 answered: false,
                 private: {
                     cards: oldPlayer.private.cards.concat(newCards[i])

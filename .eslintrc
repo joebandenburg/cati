@@ -1,6 +1,8 @@
 {
   "root": true,
   "rules": {
+    "no-extra-semi": 2,
+    "semi": [2, "always"],
     "eqeqeq": 2,
     "no-eval": 2,
     "no-undef": 2,

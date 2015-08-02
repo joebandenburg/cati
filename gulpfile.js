@@ -13,6 +13,7 @@ var babelify = require("babelify");
 var resolve = require("resolve");
 var mocha = require("gulp-mocha");
 var eslint = require("gulp-eslint");
+require("babel/register");
 
 var server;
 
@@ -44,7 +45,7 @@ gulp.task("test-server", function() {
     return gulp.src("test/server/**/*.js", {read: false})
         .pipe(mocha({
             reporter: "spec",
-            require: ["babel/register"]
+            require: []
         }));
 });
 
@@ -98,16 +99,17 @@ gulp.task("transpile", function() {
         .pipe(gulp.dest("dist")));
 });
 
-gulp.task("server", ["copy-server-assets", "transpile"], function() {
+gulp.task("server", ["test-server", "copy-server-assets", "transpile"], function() {
     if (server) server.kill();
     server = spawn("node", ["dist/index.js"], {stdio: "inherit"});
 });
 
-gulp.task("default", ["bundle-vendor", "transpile", "copy-assets", "copy-server-assets", "bundle"]);
+gulp.task("default", ["lint", "test-server", "bundle-vendor", "transpile", "copy-assets", "copy-server-assets", "bundle"]);
 
 gulp.task("watch", ["server", "copy-assets"], function() {
     gulp.watch(["index.js", "server/**/*"], ["server"]);
     gulp.watch("static/**/*", ["copy-assets"]);
+    gulp.watch("test/server/**/*", ["test-server"]);
     var w = watchify(bify);
     w.on("update", function() {
             w.bundle()
