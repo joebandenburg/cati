@@ -31,7 +31,7 @@ class HomeFeature extends React.Component {
         const columns = isXsmall(this.context.windowWidth) ? 2 : 3;
         const width = calcWidth(this.context.windowWidth, columns);
         const paperStyle = {
-            width: width,
+            width,
             marginRight: (this.props.lastChild) ? 0 : gutterWidth(this.context.windowWidth)
         };
         const captionStyle = {
@@ -45,7 +45,7 @@ class HomeFeature extends React.Component {
         const iconStyle = {
             backgroundColor: this.props.color,
             height: width,
-            width: width,
+            width,
             fontSize: 0.6 * width,
             lineHeight: width + "px",
             textAlign: "center",

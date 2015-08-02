@@ -6,5 +6,8 @@
     "defaultParams": true,
     "destructuring": true,
     "modules": true
+  },
+  "env": {
+    "node": true
   }
 }

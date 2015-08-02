@@ -59,7 +59,7 @@ export default class Game {
             }
         }));
         const newState = {
-            players: players,
+            players,
             private: {
                 remainingAnswers: answers,
                 remainingQuestions: questions
@@ -123,7 +123,7 @@ export default class Game {
         const newPlayerState = newState.players[playerIndex];
         const newVoteeState = newState.players[this.state.voteeIndex];
         newPlayerState.vote = vote;
-        if (vote == voteType.UP) {
+        if (vote === voteType.UP) {
             newVoteeState.score += voteUpScore;
         } else {
             newVoteeState.score += voteDownScore;
@@ -208,7 +208,7 @@ export default class Game {
         const newState = {
             type: (oldState.private.remainingQuestions.length === 0) ? stateType.FINAL_SCORES : stateType.SCORES,
             private: oldState.private,
-            players: oldstate.players.map((p, i) => ({
+            players: oldState.players.map((p, i) => ({
                 oldScore: p.score,
                 score: p.score + p.questionScore,
                 oldPosition: p.position,

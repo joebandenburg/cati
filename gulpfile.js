@@ -34,7 +34,7 @@ var bify = browserify(browersifyOpts)
     .external("lodash");
 
 gulp.task("lint", function() {
-    return gulp.src(["client/**/*.js", "server/**/*.js", "gulpfile.js"])
+    return gulp.src(["client/**/*.js", "server/**/*.js", "test/**/*.js"])
         .pipe(eslint())
         .pipe(eslint.format())
         .pipe(eslint.failOnError());

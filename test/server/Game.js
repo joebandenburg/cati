@@ -11,7 +11,7 @@ describe("Game", () => {
     });
     describe("initial state", () => {
         it("is of type answering", () => {
-            var g = new Game();
+            const g = new Game();
             assert.equal(g.state.type, stateType.ANSWERING);
         });
     });
