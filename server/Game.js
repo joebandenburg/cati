@@ -20,7 +20,7 @@ export const stateType = {
     FINAL_SCORES: 4
 };
 
-const voteType = {
+export const voteType = {
     UP: 1,
     DOWN: 2
 };
@@ -111,7 +111,7 @@ export default class Game {
         if (this.state.type !== stateType.VOTING) {
             throw new Error("Invalid action");
         }
-        if (!_.findKey(voteType, vote)) {
+        if (!_.includes(_.values(voteType), vote)) {
             throw new Error("Invalid vote");
         }
         if (this.state.voteeIndex === playerIndex) {
@@ -126,9 +126,9 @@ export default class Game {
         const newVoteeState = newState.players[this.state.voteeIndex];
         newPlayerState.vote = vote;
         if (vote === voteType.UP) {
-            newVoteeState.score += voteUpScore;
+            newVoteeState.questionScore += voteUpScore;
         } else {
-            newVoteeState.score += voteDownScore;
+            newVoteeState.questionScore += voteDownScore;
         }
         this._setState(newState);
     }
@@ -182,12 +182,18 @@ export default class Game {
         newState.players = oldState.players.map((p, i) => {
             if (i === newState.voteeIndex) {
                 return {
+                    score: p.score,
+                    position: p.position,
+                    answered: p.answered,
                     answers: p.private.answers,
                     questionScore: 0,
                     private: p.private
                 };
             } else {
                 return {
+                    score: p.score,
+                    position: p.position,
+                    answered: p.answered,
                     vote: null,
                     questionScore: p.questionScore,
                     private: p.private
@@ -207,8 +213,9 @@ export default class Game {
         const newPositions = _(oldState.players)
             .map(p => p.score + p.questionScore)
             .zip(_.range(this.playerCount))
-            .sortBy((a, b) => a[0] - b[0])
-            .unzip()[0];
+            .sortBy(a => a[0])
+            .unzip()
+            .value()[0];
         const newState = {
             type: (oldState.private.remainingQuestions.length === 0) ? stateType.FINAL_SCORES : stateType.SCORES,
             private: oldState.private,
