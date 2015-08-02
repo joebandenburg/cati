@@ -12,11 +12,12 @@ var envify = require("envify");
 var babelify = require("babelify");
 var resolve = require("resolve");
 var mocha = require("gulp-mocha");
+var eslint = require("gulp-eslint");
 
 var server;
 
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
-const isProduction = process.env.NODE_ENV === "production";
+var isProduction = process.env.NODE_ENV === "production";
 
 var browersifyOpts = {
     entries: ["client/client.js"],
@@ -31,6 +32,13 @@ var bify = browserify(browersifyOpts)
     .external("material-ui")
     .external("socket.io-client")
     .external("lodash");
+
+gulp.task("lint", function() {
+    return gulp.src(["client/**/*.js", "server/**/*.js", "gulpfile.js"])
+        .pipe(eslint())
+        .pipe(eslint.format())
+        .pipe(eslint.failOnError());
+})
 
 gulp.task("test-server", function() {
     return gulp.src("test/server/**/*.js", {read: false})
