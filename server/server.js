@@ -14,11 +14,22 @@ export default port => {
         game.onStateChange = () => {
             socket.emit("client game state update", game.getPlayerState(0));
         };
+        socket.on("error", (e) => {
+            console.log(e);
+        });
         socket.on("answer", (answerIndexes) => {
-            game.answer(0, answerIndexes);
+            try {
+                game.answer(0, answerIndexes);
+            } catch (e) {
+                socket.emit("error", e);
+            }
         });
         socket.on("vote", (answerIndexes) => {
-            game.vote(0, answerIndexes);
+            try {
+                game.vote(0, answerIndexes);
+            } catch (e) {
+                socket.emit("error", e);
+            }
         });
     });
 
