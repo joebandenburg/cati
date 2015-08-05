@@ -31,6 +31,9 @@ class Game extends React.Component {
             this.setState(newGameState);
         });
     }
+    componentWillUnmount() {
+        this.socket.disconnect();
+    }
     start() {
         this.socket.emit("start");
     }
