@@ -35,7 +35,7 @@ export default class Game {
         questionCount = 10,
         answersInHandCount = 5,
         answerTimeoutSeconds = 30,
-        voteTimeoutSeconds = 5
+        voteTimeoutSeconds = 10
     } = {}) {
         if (questionCount > cards.blackCards.length) {
             throw new Error("Too many questions");
