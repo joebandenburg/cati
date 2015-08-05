@@ -14,6 +14,7 @@ function pickRandomAnswers(indexes, count) {
 }
 
 export const stateType = {
+    LOBBY: 0,
     ANSWERING: 1,
     VOTING: 2,
     SCORES: 3,
@@ -31,7 +32,6 @@ const voteDownScore = -5;
 
 export default class Game {
     constructor({
-        playerCount = 5,
         questionCount = 10,
         answersInHandCount = 5,
         answerTimeoutSeconds = 30,
@@ -41,32 +41,15 @@ export default class Game {
             throw new Error("Too many questions");
         }
 
-        this.playerCount = playerCount;
+        this.questionCount = questionCount;
         this.answersInHandCount = answersInHandCount;
         this.answerTimeoutSeconds = answerTimeoutSeconds;
         this.voteTimeoutSeconds = voteTimeoutSeconds;
 
-        const questions = pickRandomQuestions(_.range(cards.blackCards.length), questionCount);
-        const playerAnswerCount = answersInHandCount + _.sum(questions.map(q => q.pick));
-        const totalAnswerCount = playerCount * playerAnswerCount;
-        if (totalAnswerCount > cards.whiteCards.length) {
-            throw new Error("Too many questions or players");
-        }
-        const answers = pickRandomAnswers(_.range(cards.whiteCards.length), totalAnswerCount);
-        const players = _.range(playerCount).map(i => ({
-            score: 0,
-            private: {
-                cards: []
-            }
-        }));
-        const newState = {
-            players,
-            private: {
-                remainingAnswers: answers,
-                remainingQuestions: questions
-            }
+        this.state = {
+            type: stateType.LOBBY,
+            players: []
         };
-        this._transitionToAnsweringState(newState);
     }
     getPlayerState(playerIndex) {
         const stateForPlayer = _.omit(_.cloneDeep(this.state), "private");
@@ -79,6 +62,22 @@ export default class Game {
         });
         stateForPlayer.playerIndex = playerIndex;
         return stateForPlayer;
+    }
+    join() {
+        if (this.state.type !== stateType.LOBBY) {
+            throw new Error("Cannot join a game in progress");
+        }
+        const newState = _.cloneDeep(this.state);
+        newState.players.push({
+        });
+        this._setState(newState);
+        return newState.players.length - 1;
+    }
+    start() {
+        if (this.state.type !== stateType.LOBBY) {
+            throw new Error("Cannot join a game in progress");
+        }
+        this._transitionToFirstAnsweringState();
     }
     answer(playerIndex, answerIndexes) {
         if (this.state.type !== stateType.ANSWERING) {
@@ -139,6 +138,28 @@ export default class Game {
             }
         }, 0);
     }
+    _transitionToFirstAnsweringState(oldState = this.state) {
+        const questions = pickRandomQuestions(_.range(cards.blackCards.length), this.questionCount);
+        const playerAnswerCount = this.answersInHandCount + _.sum(questions.map(q => q.pick));
+        const totalAnswerCount = oldState.players.length * playerAnswerCount;
+        if (totalAnswerCount > cards.whiteCards.length) {
+            throw new Error("Too many questions or players");
+        }
+        const answers = pickRandomAnswers(_.range(cards.whiteCards.length), totalAnswerCount);
+        const newState = {
+            players: oldState.players.map(p => ({
+                score: 0,
+                private: {
+                    cards: []
+                }
+            })),
+            private: {
+                remainingAnswers: answers,
+                remainingQuestions: questions
+            }
+        };
+        this._transitionToAnsweringState(newState);
+    }
     _transitionToAnsweringState(oldState = this.state) {
         const [newCards, newRemainingAnswers] = oldState.players.reduce((acc, p) => {
             const cardCountNeeded = this.answersInHandCount - p.private.cards.length;
@@ -170,7 +191,7 @@ export default class Game {
     _transitionToVotingState(oldState = this.state) {
         const newState = _.cloneDeep(oldState);
         newState.type = stateType.VOTING;
-        newState.private.voteOrder = _().range(this.playerCount).shuffle().value();
+        newState.private.voteOrder = _().range(oldState.players.length).shuffle().value();
         this._transitionToNextVotingState(newState);
     }
     _transitionToNextVotingState(oldState = this.state) {

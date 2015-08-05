@@ -1,6 +1,7 @@
 import React from "react";
 import SocketIO from "socket.io-client";
 import _ from "lodash";
+import Lobby from "./Lobby";
 import Answering from "./Answering";
 import Answered from "./Answered";
 import Voting from "./Voting";
@@ -8,6 +9,7 @@ import Scores from "./Scores";
 
 // TODO: Factor out commonaility with server
 const stateType = {
+    LOBBY: 0,
     ANSWERING: 1,
     VOTING: 2,
     SCORES: 3,
@@ -23,10 +25,14 @@ class Game extends React.Component {
     }
     componentDidMount() {
         this.socket = SocketIO();
+        this.socket.emit("join game", this.props.params.id);
         this.socket.on("client game state update", newGameState => {
             newGameState.loading = false;
             this.setState(newGameState);
         });
+    }
+    start() {
+        this.socket.emit("start");
     }
     answer(answerIndex) {
         this.socket.emit("answer", [answerIndex]);
@@ -42,6 +48,8 @@ class Game extends React.Component {
         const otherPlayers = _.without(this.state.players, player);
         const otherPlayersAnswered = _.pluck(otherPlayers, "answered");
         switch (this.state.type) {
+        case stateType.LOBBY:
+            return <Lobby onStart={this.start.bind(this)} />;
         case stateType.ANSWERING:
             if (!player.answered) {
                 return <Answering question={this.state.question}
