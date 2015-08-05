@@ -95,7 +95,8 @@ export default class Game {
         }
         const newState = _.cloneDeep(this.state);
         const newPlayerState = newState.players[playerIndex];
-        newPlayerState.private.answers = _.pullAt(newPlayerState.private.cards, answerIndexes);
+        [newPlayerState.private.answers, newPlayerState.private.cards] =
+            _.partition(playerState.private.cards, (c, i) => _.includes(answerIndexes, i));
         newPlayerState.answered = true;
         const allPlayersPicked = newState.players.every(p => p.answered);
         if (allPlayersPicked) {
@@ -192,6 +193,24 @@ export default class Game {
         const newState = _.cloneDeep(oldState);
         newState.type = stateType.VOTING;
         newState.private.voteOrder = _().range(oldState.players.length).shuffle().value();
+        newState.players = oldState.players.map(p => {
+            let answers, cards;
+            if (p.answered) {
+                answers = p.private.answers;
+                cards = p.private.cards;
+            } else {
+                const randomAnswerIndexes = pickRandomSubset(_.range(p.private.cards.length), oldState.question.pick);
+                [answers, cards] = _.partition(p.private.cards, (c, i) => _.includes(randomAnswerIndexes, i));
+            }
+            return {
+                score: p.score,
+                questionScore: 0,
+                private: {
+                    cards,
+                    answers
+                }
+            };
+        });
         this._transitionToNextVotingState(newState);
     }
     _transitionToNextVotingState(oldState = this.state) {
@@ -202,7 +221,6 @@ export default class Game {
             if (i === newState.voteeIndex) {
                 return {
                     score: p.score,
-                    answered: p.answered,
                     answers: p.private.answers,
                     questionScore: 0,
                     private: p.private
@@ -210,7 +228,6 @@ export default class Game {
             } else {
                 return {
                     score: p.score,
-                    answered: p.answered,
                     answers: p.answers,
                     vote: null,
                     questionScore: p.questionScore,

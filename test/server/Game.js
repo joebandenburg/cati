@@ -72,6 +72,16 @@ describe("Game", () => {
             clock.tick(1);
             assert.equal(g.state.type, stateType.VOTING);
         });
+        it("maintains the answers for players who have answered", () => {
+            const answers = _.take(g.state.players[0].private.cards, g.state.question.pick);
+            g.answer(0, _.range(g.state.question.pick));
+            clock.tick(100000);
+            assert.deepEqual(g.state.players[0].private.answers, answers);
+        });
+        it("randomly picks cards for players who have not answered", () => {
+            clock.tick(100000);
+            assert.equal(g.state.players[0].private.answers.length, g.state.question.pick);
+        });
         describe("state", () => {
             it("is of type answering", () => {
                 assert.equal(g.state.type, stateType.ANSWERING);
@@ -269,8 +279,8 @@ describe("Game", () => {
                 assert.deepEqual(sortedVoters, _.range(5));
             });
             describe("each player", () => {
-                it("has answered", () => {
-                    assert.deepEqual(_.pluck(g.state.players, "answered"), [true, true, true, true, true]);
+                it("doesn't have an answered field", () => {
+                    assert.deepEqual(_.pluck(g.state.players, "answered"), [undefined, undefined, undefined, undefined, undefined]);
                 });
                 it("has cards", () => {
                     const cards = 5 - g.state.question.pick;
@@ -278,6 +288,9 @@ describe("Game", () => {
                 });
                 it("has a score of 0", () => {
                     assert.deepEqual(_.pluck(g.state.players, "score"), [0, 0, 0, 0, 0]);
+                });
+                it("has a questionScore of 0", () => {
+                    assert.deepEqual(_.pluck(g.state.players, "questionScore"), [0, 0, 0, 0, 0]);
                 });
             });
             it("has a questionScore of 0 for the votee", () => {
@@ -288,10 +301,6 @@ describe("Game", () => {
             });
             it("has a undefined vote for the votee", () => {
                 assert.isUndefined(g.state.players[g.state.voteeIndex].vote);
-            });
-            it("has a questionScore of undefined for every player except the votee", () => {
-                const otherPlayers = _.at(g.state.players, g.state.private.voteOrder);
-                assert.deepEqual(_.pluck(otherPlayers, "questionScore"), [undefined, undefined, undefined, undefined]);
             });
             it("does not have a public set of answers for every player except the votee", () => {
                 const otherPlayers = _.at(g.state.players, g.state.private.voteOrder);
@@ -383,9 +392,6 @@ describe("Game", () => {
                     });
                 });
                 describe("each player", () => {
-                    it("has answered", () => {
-                        assert.deepEqual(_.pluck(g.state.players, "answered"), [true, true, true, true, true]);
-                    });
                     it("has cards", () => {
                         const cards = 5 - g.state.question.pick;
                         assert.deepEqual(g.state.players.map(p => p.private.cards.length), [cards, cards, cards, cards, cards]);
@@ -469,9 +475,6 @@ describe("Game", () => {
                 assert.isUndefined(g.state.voteeIndex);
             });
             describe("each player", () => {
-                it("has answered", () => {
-                    assert.deepEqual(_.pluck(g.state.players, "answered"), [true, true, true, true, true]);
-                });
                 it("has answers", () => {
                     assert.deepEqual(g.state.players.map(p => p.answers.length === g.state.question.pick), [true, true, true, true, true]);
                 });
