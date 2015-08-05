@@ -6,6 +6,7 @@ import _ from "lodash";
 describe("Game", () => {
     let clock;
     let g;
+    let onStateChange;
     beforeEach(() => {
         clock = sinon.useFakeTimers();
         g = new Game({
@@ -15,7 +16,8 @@ describe("Game", () => {
             answerTimeoutSeconds: 100,
             voteTimeoutSeconds: 200
         });
-        g.onStateChange = sinon.spy();
+        onStateChange = sinon.spy();
+        g.on("stateChanged", onStateChange);
     });
     afterEach(() => {
         clock.restore();
@@ -121,7 +123,7 @@ describe("Game", () => {
             it("fires an onStateChange event", (done) => {
                 g.answer(0, _.range(g.state.question.pick));
                 setTimeout(() => {
-                    sinon.assert.callCount(g.onStateChange, 7);
+                    sinon.assert.callCount(onStateChange, 7);
                     done();
                 }, 0);
                 clock.tick(1);
@@ -332,7 +334,7 @@ describe("Game", () => {
             it("fires an onStateChange event", (done) => {
                 g.vote(voterIndex, voteType.UP);
                 setTimeout(() => {
-                    sinon.assert.callCount(g.onStateChange, 12);
+                    sinon.assert.callCount(onStateChange, 12);
                     done();
                 }, 0);
                 clock.tick(1);

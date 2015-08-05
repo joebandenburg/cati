@@ -1,3 +1,4 @@
+import {EventEmitter} from "events";
 import _ from "lodash";
 import cards from "./cards.json";
 
@@ -41,6 +42,8 @@ export default class Game {
             throw new Error("Too many questions");
         }
 
+        this.emitter = new EventEmitter();
+        this.on = this.emitter.on.bind(this.emitter);
         this.questionCount = questionCount;
         this.answersInHandCount = answersInHandCount;
         this.answerTimeoutSeconds = answerTimeoutSeconds;
@@ -134,9 +137,7 @@ export default class Game {
     _setState(newState) {
         this.state = newState;
         setTimeout(() => {
-            if (this.onStateChange) {
-                this.onStateChange.call(null);
-            }
+            this.emitter.emit("stateChanged");
         }, 0);
     }
     _transitionToFirstAnsweringState(oldState = this.state) {
