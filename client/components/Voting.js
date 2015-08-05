@@ -31,7 +31,7 @@ export default class Voting extends React.Component {
         const cardStyle = {
             flexShrink: 0
         };
-        const cards = this.props.answers.map(a => <AnswerCard hover={false} style={cardStyle}>{a}</AnswerCard>);
+        const cards = this.props.answers.map((a, i) => <AnswerCard key={i} hover={false} style={cardStyle}>{a}</AnswerCard>);
         return (
             <div style={containerStyle}>
                 <h1 style={h1Style}>{this.props.question.text}</h1>
