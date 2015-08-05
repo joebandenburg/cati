@@ -63,8 +63,7 @@ class Game extends React.Component {
             const votee = this.state.players[this.state.voteeIndex];
             return <Voting question={this.state.question}
                            isMe={this.state.voteeIndex === this.state.playerIndex}
-                           voteeName={votee.name}
-                           answered={votee.answered}
+                           voteeName={"Bob"}
                            answers={votee.answers}
                            onVote={this.vote.bind(this)} />;
         case stateType.SCORES:
