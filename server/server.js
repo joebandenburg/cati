@@ -44,29 +44,30 @@ export default port => {
             }
             const game = gameMap.get(id);
             const playerIndex = game.join();
-            game.on("stateChanged", () => {
+            const emit = () => {
                 socket.emit("client game state update", game.getPlayerState(playerIndex));
-            });
-            socket.on("start", () => {
-                try {
-                    game.start();
-                } catch (e) {
-                    socket.emit("error", e);
-                }
-            });
-            socket.on("answer", (answerIndexes) => {
-                try {
-                    game.answer(playerIndex, answerIndexes);
-                } catch (e) {
-                    socket.emit("error", e);
-                }
-            });
-            socket.on("vote", (answerIndexes) => {
-                try {
-                    game.vote(playerIndex, answerIndexes);
-                } catch (e) {
-                    socket.emit("error", e);
-                }
+            };
+            game.on("stateChanged", emit);
+            const safe = fn => {
+                return (...args) => {
+                    try {
+                        fn(...args);
+                    } catch (e) {
+                        socket.emit("error", e);
+                    }
+                };
+            };
+            const start = safe(() => game.start());
+            const answer = safe(answerIndexes => game.answer(playerIndex, answerIndexes));
+            const vote = safe(vote => game.vote(playerIndex, vote));
+            socket.on("start", start);
+            socket.on("answer", answer);
+            socket.on("vote", vote);
+            socket.on("leave game", () => {
+                game.removeListener("stateChanged", emit);
+                socket.removeListener("start", start);
+                socket.removeListener("answer", answer);
+                socket.removeListener("vote", vote);
             });
         });
     });

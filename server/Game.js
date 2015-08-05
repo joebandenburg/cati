@@ -31,19 +31,19 @@ const scoresTimeoutSeconds = 10;
 const voteUpScore = 10;
 const voteDownScore = -5;
 
-export default class Game {
+export default class Game extends EventEmitter {
     constructor({
         questionCount = 10,
         answersInHandCount = 5,
         answerTimeoutSeconds = 30,
         voteTimeoutSeconds = 10
     } = {}) {
+        super();
+
         if (questionCount > cards.blackCards.length) {
             throw new Error("Too many questions");
         }
 
-        this.emitter = new EventEmitter();
-        this.on = this.emitter.on.bind(this.emitter);
         this.questionCount = questionCount;
         this.answersInHandCount = answersInHandCount;
         this.answerTimeoutSeconds = answerTimeoutSeconds;
@@ -137,7 +137,7 @@ export default class Game {
     _setState(newState) {
         this.state = newState;
         setTimeout(() => {
-            this.emitter.emit("stateChanged");
+            this.emit("stateChanged");
         }, 0);
     }
     _transitionToFirstAnsweringState(oldState = this.state) {

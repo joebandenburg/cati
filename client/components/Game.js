@@ -32,7 +32,8 @@ class Game extends React.Component {
         });
     }
     componentWillUnmount() {
-        this.socket.disconnect();
+        this.socket.emit("leave game");
+        this.socket.removeAllListeners("client game state update");
     }
     start() {
         this.socket.emit("start");
@@ -45,7 +46,7 @@ class Game extends React.Component {
     }
     render() {
         if (this.state.loading) {
-            return <div></div>;
+            return <div>Joining...</div>;
         }
         const player = this.state.players[this.state.playerIndex];
         const otherPlayers = _.without(this.state.players, player);
