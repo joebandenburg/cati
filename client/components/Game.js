@@ -53,7 +53,8 @@ class Game extends React.Component {
         const otherPlayersAnswered = _.pluck(otherPlayers, "answered");
         switch (this.state.type) {
         case stateType.LOBBY:
-            return <Lobby onStart={this.start.bind(this)} />;
+            return <Lobby onStart={this.start.bind(this)}
+                          gameCode={this.props.params.id} />;
         case stateType.ANSWERING:
             if (!player.answered) {
                 return <Answering question={this.state.question}
