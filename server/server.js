@@ -23,7 +23,15 @@ export default port => {
     const io = SocketIO(server);
     const gameMap = new Map();
 
-    app.use(express.static("dist/public"));
+    const redirectToIndex = (req, res, next) => {
+        req.url = req.originalUrl = "/";
+        next();
+    };
+
+    app.get("/create-game", redirectToIndex);
+    app.get("/join-game", redirectToIndex);
+    app.get("/game/:id", redirectToIndex);
+    app.use("/", express.static("dist/public"));
 
     app.post("/api/game", (req, res) => {
         const id = generateUniqueGameId(gameMap);

@@ -17,7 +17,7 @@ const routes = (
     </Route>
 );
 
-Router.run(routes, Router.HashLocation, (Root) =>
+Router.run(routes, Router.HistoryLocation, (Root) =>
     React.render(
         <Root />,
         document.getElementById("app")
