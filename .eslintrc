@@ -1,5 +1,14 @@
 {
   "root": true,
+  "ecmaFeatures": {
+    "arrowFunctions": true,
+    "blockBindings": true,
+    "classes": true,
+    "defaultParams": true,
+    "destructuring": true,
+    "modules": true,
+    "restParams": true
+  },
   "rules": {
     "no-extra-semi": 2,
     "semi": [2, "always"],

@@ -1,7 +1,7 @@
 {
-  "name": "foosladder",
+  "name": "cati",
   "version": "0.1.0",
-  "description": "A table football league table",
+  "description": "Cards Against the Internet",
   "main": "dist/index.js",
   "scripts": {
     "test": "",
@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/joebandenburg/foosladder.git"
+    "url": "https://github.com/joebandenburg/cati.git"
   },
   "author": "Joe Bandenburg <joe@bandenburg.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/joebandenburg/foosladder/issues"
+    "url": "https://github.com/joebandenburg/cati/issues"
   },
-  "homepage": "https://github.com/joebandenburg/foosladder",
+  "homepage": "https://github.com/joebandenburg/cati",
   "devDependencies": {},
   "dependencies": {
     "babel": "^5.8.20",

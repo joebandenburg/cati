@@ -1,12 +1,4 @@
 {
-  "ecmaFeatures": {
-    "arrowFunctions": true,
-    "blockBindings": true,
-    "classes": true,
-    "defaultParams": true,
-    "destructuring": true,
-    "modules": true
-  },
   "env": {
     "node": true
   }
