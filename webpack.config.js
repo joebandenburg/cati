@@ -5,7 +5,7 @@ module.exports = {
     target: "web",
     cache: true,
     entry: {
-        app: ["webpack/hot/dev-server", path.join(__dirname, "client", "client.js")],
+        app: ["webpack-dev-server/client/", "webpack/hot/dev-server", path.join(__dirname, "client", "client.js")],
         vendor: ["react", "react-router", "material-ui", "socket.io-client", "lodash", "core-js", "whatwg-fetch", "react-tap-event-plugin"]
     },
     output: {
