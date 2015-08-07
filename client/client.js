@@ -1,9 +1,14 @@
+import "core-js";
+import "whatwg-fetch";
+import injectTapEventPlugin from "react-tap-event-plugin";
 import React from "react";
 import Router from "react-router";
 import App from "./components/App";
 import Home from "./components/Home";
 import Game from "./components/Game";
 import CreateGame from "./components/CreateGame";
+
+injectTapEventPlugin();
 
 const Route = Router.Route;
 const DefaultRoute = Router.DefaultRoute;

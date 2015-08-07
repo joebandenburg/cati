@@ -1,16 +1,12 @@
 var gulp = require("gulp");
+var gutil = require("gulp-util");
 var babel = require("gulp-babel");
 var merge = require("merge-stream");
 var spawn = require("child_process").spawn;
-var browserify = require("browserify");
-var watchify = require("watchify");
-var source = require("vinyl-source-stream");
-var buffer = require("vinyl-buffer");
-var assign = require("lodash").assign;
-var uglify = require("gulp-uglify");
-var envify = require("envify");
-var babelify = require("babelify");
-var resolve = require("resolve");
+var webpack = require("webpack");
+var WebpackDevServer = require("webpack-dev-server");
+var webpackDevConfig = require("./webpack.config");
+var webpackProdConfig = require("./webpack.prod.config");
 var mocha = require("gulp-mocha");
 var eslint = require("gulp-eslint");
 require("babel/register");
@@ -19,27 +15,14 @@ var server;
 
 process.env.NODE_ENV = process.env.NODE_ENV || "development";
 var isProduction = process.env.NODE_ENV === "production";
-
-var browersifyOpts = {
-    entries: ["client/client.js"],
-    transform: [babelify, envify],
-    debug: true
-};
-browersifyOpts = assign({}, watchify.args, browersifyOpts);
-
-var bify = browserify(browersifyOpts)
-    .external("react")
-    .external("react-router")
-    .external("material-ui")
-    .external("socket.io-client")
-    .external("lodash");
+var webpackConfig = isProduction ? webpackProdConfig : webpackDevConfig;
 
 gulp.task("lint", function() {
     return gulp.src(["client/**/*.js", "server/**/*.js", "test/**/*.js"])
         .pipe(eslint())
         .pipe(eslint.format())
         .pipe(eslint.failOnError());
-})
+});
 
 gulp.task("test-server", function() {
     return gulp.src("test/server/**/*.js", {read: false})
@@ -59,35 +42,14 @@ gulp.task("copy-server-assets", function() {
         .pipe(gulp.dest("dist/server"));
 });
 
-gulp.task("bundle-vendor", function() {
-    var p = browserify({
-            transform: [babelify, envify],
-            debug: !isProduction
-        })
-        .require(resolve.sync("react/addons"), { expose: "react" })
-        .require(resolve.sync("react-router"), { expose: "react-router" })
-        .require(resolve.sync("material-ui"), { expose: "material-ui" })
-        .require(resolve.sync("socket.io-client"), { expose: "socket.io-client" })
-        .require(resolve.sync("lodash"), { expose: "lodash" })
-        .add("client/vendor.js")
-        .transform(envify, { global: true })
-        .bundle()
-        .pipe(source("lib.js"));
-    if (isProduction) {
-        p = p.pipe(buffer())
-            .pipe(uglify());
-    }
-    return p.pipe(gulp.dest("dist/public"));
-});
-
-gulp.task("bundle", function() {
-    return bify
-        .bundle()
-        .on("error", console.log.bind(console, "Browserify Error"))
-        .pipe(source("app.js"))
-        .pipe(buffer())
-        .pipe(uglify())
-        .pipe(gulp.dest("dist/public"));
+gulp.task("bundle", function(callback) {
+    webpack(webpackConfig, function(err, stats) {
+        if (err) throw new gutil.PluginError("webpack", err);
+        gutil.log("[webpack]", stats.toString({
+            // output options
+        }));
+        callback();
+    });
 });
 
 gulp.task("transpile", function() {
@@ -108,17 +70,7 @@ gulp.task("default", ["lint", "test-server", "bundle-vendor", "transpile", "copy
 
 gulp.task("watch", ["server", "copy-assets"], function() {
     gulp.watch(["index.js", "server/**/*"], ["server"]);
-    gulp.watch("static/**/*", ["copy-assets"]);
     gulp.watch("test/server/**/*", ["test-server"]);
-    var w = watchify(bify);
-    w.on("update", function() {
-            w.bundle()
-                .on("error", console.log.bind(console, "Browserify Error"))
-                .pipe(source("app.js"))
-                .pipe(gulp.dest("dist/public"));
-        })
-        .on("log", console.log.bind(console))
-        .bundle()
-        .pipe(source("app.js"))
-        .pipe(gulp.dest("dist/public"));
+    var compiler = webpack(webpackConfig);
+    new WebpackDevServer(compiler, webpackConfig.devServer).listen(webpackConfig.devServer.port, "localhost");
 });

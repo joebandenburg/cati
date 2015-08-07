@@ -7,7 +7,7 @@ import Answered from "./Answered";
 import Voting from "./Voting";
 import Scores from "./Scores";
 
-// TODO: Factor out commonaility with server
+// TODO: Factor out commonality with server
 const stateType = {
     LOBBY: 0,
     ANSWERING: 1,
@@ -24,7 +24,9 @@ class Game extends React.Component {
         };
     }
     componentDidMount() {
-        this.socket = SocketIO();
+        this.socket = SocketIO(undefined, {
+            path: "/api/socket"
+        });
         this.socket.emit("join game", this.props.params.id);
         this.socket.on("client game state update", newGameState => {
             newGameState.loading = false;

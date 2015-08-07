@@ -20,7 +20,9 @@ function generateUniqueGameId(gameMap) {
 export default port => {
     const app = express();
     const server = http.Server(app);
-    const io = SocketIO(server);
+    const io = SocketIO(server, {
+        path: "/api/socket"
+    });
     const gameMap = new Map();
 
     const redirectToIndex = (req, res, next) => {
@@ -31,7 +33,7 @@ export default port => {
     app.get("/create-game", redirectToIndex);
     app.get("/join-game", redirectToIndex);
     app.get("/game/:id", redirectToIndex);
-    app.use("/", express.static("dist/public"));
+    app.use("/", express.static("static"));
 
     app.post("/api/game", (req, res) => {
         const id = generateUniqueGameId(gameMap);
