@@ -72,5 +72,5 @@ gulp.task("watch", ["server", "copy-assets"], function() {
     gulp.watch(["index.js", "server/**/*"], ["server"]);
     gulp.watch("test/server/**/*", ["test-server"]);
     var compiler = webpack(webpackConfig);
-    new WebpackDevServer(compiler, webpackConfig.devServer).listen(webpackConfig.devServer.port, "localhost");
+    new WebpackDevServer(compiler, webpackConfig.devServer).listen(webpackConfig.devServer.port, "0.0.0.0");
 });
