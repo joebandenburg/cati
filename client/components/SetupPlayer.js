@@ -120,14 +120,14 @@ class Box extends React.Component {
         super();
         this.state = {
             hovered: false
-        }
+        };
     }
     render() {
         const paperStyle = {
             backgroundColor: this.state.hovered ? this.props.hoverColor : this.props.backgroundColor,
             color: this.props.textColor,
             maxWidth: this.props.width,
-            minHeight: 400,
+            minHeight: 350,
             height: this.props.height,
             flexGrow: 1,
             flexShrink: 0,
