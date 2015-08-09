@@ -189,6 +189,8 @@ class Box extends React.Component {
     }
 }
 
+const themeManager = new mui.Styles.ThemeManager();
+
 export default class SetupPlayer extends React.Component {
     constructor() {
         super();
@@ -197,14 +199,19 @@ export default class SetupPlayer extends React.Component {
             isSharedScreen: false
         };
     }
+    getChildContext() {
+        return {
+            muiTheme: themeManager.getCurrentTheme()
+        };
+    }
     componentWillMount() {
-        this.context.muiTheme.setPalette({
+        themeManager.setPalette({
             primary1Color: Colors.blueA200,
             accent1Color: Colors.blueA200,
             canvasColor: Colors.green400,
             textColor: Colors.darkWhite
         });
-        this.context.muiTheme.setComponentThemes({
+        themeManager.setComponentThemes({
             textField: {
                 hintColor: Colors.lightWhite,
                 errorColor: Colors.orange100
@@ -479,6 +486,9 @@ export default class SetupPlayer extends React.Component {
         );
     }
 }
+SetupPlayer.childContextTypes = {
+    muiTheme: React.PropTypes.object
+};
 SetupPlayer.contextTypes = {
     muiTheme: React.PropTypes.object,
     windowWidth: React.PropTypes.number
