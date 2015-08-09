@@ -20,7 +20,8 @@ class App extends React.Component {
     getChildContext() {
         return {
             muiTheme: ThemeManager.getCurrentTheme(),
-            windowWidth: this.state.windowWidth
+            windowWidth: this.state.windowWidth,
+            playerInfo: this.state.playerInfo
         };
     }
     componentDidMount() {
@@ -55,7 +56,8 @@ class App extends React.Component {
 }
 App.childContextTypes = {
     muiTheme: React.PropTypes.object,
-    windowWidth: React.PropTypes.number
+    windowWidth: React.PropTypes.number,
+    playerInfo: React.PropTypes.object
 };
 
 export default App;

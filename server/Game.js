@@ -66,12 +66,13 @@ export default class Game extends EventEmitter {
         stateForPlayer.playerIndex = playerIndex;
         return stateForPlayer;
     }
-    join() {
+    join(name) {
         if (this.state.type !== stateType.LOBBY) {
             throw new Error("Cannot join a game in progress");
         }
         const newState = _.cloneDeep(this.state);
         newState.players.push({
+            name
         });
         this._setState(newState);
         return newState.players.length - 1;

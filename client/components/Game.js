@@ -27,7 +27,10 @@ class Game extends React.Component {
         this.socket = SocketIO(undefined, {
             path: "/api/socket"
         });
-        this.socket.emit("join game", this.props.params.id);
+        this.socket.emit("join game", {
+            gameId: this.props.params.id,
+            playerName: this.context.playerInfo.name
+        });
         this.socket.on("client game state update", newGameState => {
             newGameState.loading = false;
             this.setState(newGameState);
@@ -56,6 +59,7 @@ class Game extends React.Component {
         switch (this.state.type) {
         case stateType.LOBBY:
             return <Lobby onStart={this.start.bind(this)}
+                          playerNames={this.state.players.map(p => p.name)}
                           gameCode={this.props.params.id} />;
         case stateType.ANSWERING:
             if (!player.answered) {
@@ -80,7 +84,8 @@ class Game extends React.Component {
     }
 }
 Game.contextTypes = {
-    muiTheme: React.PropTypes.object
+    muiTheme: React.PropTypes.object,
+    playerInfo: React.PropTypes.object
 };
 
 export default Game;

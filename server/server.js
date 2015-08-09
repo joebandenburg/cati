@@ -48,12 +48,16 @@ export default port => {
         socket.on("error", (e) => {
             console.log(e);
         });
-        socket.on("join game", (id) => {
+        socket.on("join game", (data) => {
+            const {
+                gameId: id,
+                playerName
+            } = data;
             if (!gameMap.has(id)) {
                 socket.emit("error", "no such game");
             }
             const game = gameMap.get(id);
-            const playerIndex = game.join();
+            const playerIndex = game.join(playerName);
             const emit = () => {
                 socket.emit("client game state update", game.getPlayerState(playerIndex));
             };
