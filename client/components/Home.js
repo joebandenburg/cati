@@ -80,8 +80,18 @@ export default class Home extends React.Component {
             textColor: Colors.darkWhite
         });
     }
-    componentWillAppear() {
+    componentWillAppear(callback) {
         console.log("componentWillAppear", "Home");
+        this.setState({
+            entering: true
+        });
+        setTimeout(callback, 0);
+    }
+    componentDidAppear(callback) {
+        console.log("componentDidAppear", "Home");
+        this.setState({
+            entering: false
+        });
     }
     componentWillEnter(callback) {
         console.log("componentWillEnter", "Home");
@@ -99,8 +109,8 @@ export default class Home extends React.Component {
     render() {
         const xsmallDevice = isXsmall(this.context.windowWidth);
         const largeDevice = isLarge(this.context.windowWidth);
-        const verticalPadding = xsmallDevice ? 24 : 72;
-        const titleHeight = 128;
+        const verticalPadding = xsmallDevice ? 24 : 24;
+        const titleHeight = 118 + verticalPadding * 2;
         const style = {
             backgroundColor: this.context.muiTheme.component.appBar.color,
             color: this.context.muiTheme.component.appBar.textColor,
@@ -126,12 +136,20 @@ export default class Home extends React.Component {
         };
         const h1Style = {
             fontWeight: 400,
-            fontSize: (xsmallDevice) ? 24 : (largeDevice) ? 45 : 34
+            fontSize: (xsmallDevice) ? 24 : (largeDevice) ? 45 : 34,
+            opacity: this.state.entering ? 0 : 1,
+            transition: "all 0.5s ease-in 0.5s",
         };
         const h2Style = {
-            fontWeight: 300
+            fontWeight: 300,
+            opacity: this.state.entering ? 0 : 1,
+            transition: "all 0.5s ease-in 0.75s"
         };
         const otherStyle = {
+            position: "absolute",
+            top: titleHeight,
+            left: 0,
+            right: 0,
             display: "flex",
             justifyContent: "center",
             paddingTop: verticalPadding,

@@ -54,7 +54,7 @@ class App extends React.Component {
         });
     }
     render() {
-        const key = this.props.route;
+        const key = this.props.location.pathname;
         return (
             <TransitionGroup>
                 {React.cloneElement(this.props.children, { key })}
