@@ -32,6 +32,9 @@ export default port => {
 
     app.get("/create-game", redirectToIndex);
     app.get("/join-game", redirectToIndex);
+    app.get("/setup-device", redirectToIndex);
+    app.get("/setup-device/player", redirectToIndex);
+    app.get("/setup-device/shared", redirectToIndex);
     app.get("/game/:id", redirectToIndex);
     app.use("/", express.static("static"));
 

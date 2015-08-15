@@ -1,11 +1,13 @@
 import React from "react";
 import Router from "react-router";
 import mui from "material-ui";
-import SetupPlayer from "./SetupPlayer";
+import Home from "./Home";
 
-const ThemeManager = new mui.Styles.ThemeManager();
+const themeManager = new mui.Styles.ThemeManager();
+const Colors = mui.Styles.Colors;
 
 const RouteHandler = Router.RouteHandler;
+const TransitionGroup = React.addons.TransitionGroup;
 
 const playerInfoKey = "playerInfo";
 
@@ -19,19 +21,27 @@ class App extends React.Component {
     }
     getChildContext() {
         return {
-            muiTheme: ThemeManager.getCurrentTheme(),
+            muiTheme: themeManager.getCurrentTheme(),
             windowWidth: this.state.windowWidth,
-            playerInfo: this.state.playerInfo
+            playerInfo: this.state.playerInfo,
+            setPlayerInfo: (playerInfo) => {
+                window.localStorage[playerInfoKey] = JSON.stringify(playerInfo);
+                this.setState({
+                    playerInfo
+                });
+            }
         };
+    }
+    componentWillMount() {
+        themeManager.setPalette({
+            primary1Color: Colors.blue500
+        });
     }
     componentDidMount() {
         window.addEventListener("resize", this.onResize.bind(this));
     }
     componentWillUnmount() {
         window.removeEventListener("resize", this.onResize.bind(this));
-    }
-    componentWillUpdate(nextProps, nextState) {
-        window.localStorage[playerInfoKey] = JSON.stringify(nextState.playerInfo);
     }
     onResize() {
         this.setState({
@@ -44,19 +54,18 @@ class App extends React.Component {
         });
     }
     render() {
-        if (!this.state.playerInfo) {
-            return <SetupPlayer onPlayerInfo={this.onPlayerInfo.bind(this)} />;
-        }
+        const key = this.props.route;
         return (
-            <div>
-                <RouteHandler />
-            </div>
+            <TransitionGroup>
+                {React.cloneElement(this.props.children, { key })}
+            </TransitionGroup>
         );
     }
 }
 App.childContextTypes = {
     muiTheme: React.PropTypes.object,
     windowWidth: React.PropTypes.number,
+    setPlayerInfo: React.PropTypes.func,
     playerInfo: React.PropTypes.object
 };
 

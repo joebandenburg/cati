@@ -1,10 +1,9 @@
 import React from "react";
-import Router from "react-router";
+import { Link } from "react-router";
 import mui from "material-ui";
 import {isLarge, isXsmall, calcWidth, gutterWidth} from "../util/device";
 
 const Colors = mui.Styles.Colors;
-const Link = Router.Link;
 
 class HomeFeature extends React.Component {
     constructor() {
@@ -13,7 +12,6 @@ class HomeFeature extends React.Component {
             hovered: false
         };
     }
-
     onMouseOver() {
         this.setState({
             hovered: true
@@ -25,7 +23,6 @@ class HomeFeature extends React.Component {
             hovered: false
         });
     }
-
     render() {
         const zDepth = (this.state.hovered) ? 4 : 1;
         const columns = isXsmall(this.context.windowWidth) ? 2 : 3;
@@ -70,18 +67,56 @@ HomeFeature.contextTypes = {
     windowWidth: React.PropTypes.number
 };
 
-class Home extends React.Component {
+export default class Home extends React.Component {
+    constructor() {
+        super();
+        this.state = {
+            entering: false
+        };
+    }
+    componentWillMount() {
+        this.context.muiTheme.setPalette({
+            primary1Color: Colors.blue500,
+            textColor: Colors.darkWhite
+        });
+    }
+    componentWillAppear() {
+        console.log("componentWillAppear", "Home");
+    }
+    componentWillEnter(callback) {
+        console.log("componentWillEnter", "Home");
+        this.setState({
+            entering: true
+        });
+        setTimeout(callback, 0);
+    }
+    componentDidEnter() {
+        console.log("componentDidEnter", "Home");
+        this.setState({
+            entering: false
+        });
+    }
     render() {
         const xsmallDevice = isXsmall(this.context.windowWidth);
         const largeDevice = isLarge(this.context.windowWidth);
         const verticalPadding = xsmallDevice ? 24 : 72;
+        const titleHeight = 128;
         const style = {
             backgroundColor: this.context.muiTheme.component.appBar.color,
             color: this.context.muiTheme.component.appBar.textColor,
             paddingTop: verticalPadding,
             paddingBottom: verticalPadding,
             paddingLeft: 24,
-            paddingRight: 24
+            paddingRight: 24,
+            height: this.state.entering ? "100%" : titleHeight,
+            transition: "all 1s",
+            position: "fixed",
+            left: 0,
+            top: 0,
+            zIndex: 10,
+            width: "100%",
+            display: "flex",
+            justifyContent: "center"
         };
         const innerStyle = {
             maxWidth: 600,
@@ -105,12 +140,12 @@ class Home extends React.Component {
         };
         return (
             <div>
-                <div style={style}>
+                <mui.Paper zDepth={2} rounded={false} style={style}>
                     <div style={innerStyle}>
                         <h1 style={h1Style}>Cards Against the Internet</h1>
                         <h2 style={h2Style}>A party game for horrible people.</h2>
                     </div>
-                </div>
+                </mui.Paper>
                 <div style={otherStyle}>
                     <HomeFeature caption="Create Game" route="create-game" icon="add_circle_outline" color={Colors.red300} />
                     <HomeFeature caption="Join Game" route="join-game" icon="play_for_work" color={Colors.amber300} lastChild={true} />
@@ -121,7 +156,7 @@ class Home extends React.Component {
 }
 Home.contextTypes = {
     muiTheme: React.PropTypes.object,
-    windowWidth: React.PropTypes.number
+    windowWidth: React.PropTypes.number,
+    playerInfo: React.PropTypes.object,
+    router: React.PropTypes.object
 };
-
-export default Home;

@@ -11,7 +11,7 @@ const TransitionGroup = React.addons.TransitionGroup;
 
 const themeManager = new mui.Styles.ThemeManager();
 
-export default class SetupPlayer extends React.Component {
+export default class SetupSharedScreen extends React.Component {
     constructor() {
         super();
         this.state = {
@@ -21,23 +21,10 @@ export default class SetupPlayer extends React.Component {
     }
     componentWillMount() {
         this.context.muiTheme.setPalette({
-            primary1Color: Colors.green500,
+            primary1Color: Colors.brown500,
             accent1Color: Colors.blue500,
             textColor: Colors.darkWhite
         });
-        this.context.muiTheme.setComponentThemes({
-            textField: {
-                focusColor: Colors.blue500,
-                hintColor: Colors.lightWhite,
-                errorColor: Colors.orange100
-            }
-        });
-        this.windowHeight = window.innerHeight;
-    }
-    onReset(e) {
-        e.preventDefault();
-        const currentReturn = this.props.location.query.return;
-        this.context.router.transitionTo(this.context.router.makePath("/setup-device", {return: currentReturn}));
     }
     onGameOn(e) {
         e.preventDefault();
@@ -45,20 +32,17 @@ export default class SetupPlayer extends React.Component {
         const isTouchEvent = ne.changedTouches && ne.changedTouches.length;
         const pageX = isTouchEvent ? ne.changedTouches[0].pageX : ne.pageX;
         const pageY = isTouchEvent ? ne.changedTouches[0].pageY : ne.pageY;
-        const errorText = this.validatePlayerName();
-        if (!errorText) {
-            this.refs.playerName.blur();
-            // Give time for mobile browsers to remove the virtual keyboard
-            setTimeout(() => {
-                this.onLeave(e, pageX, pageY, {
-                    type: "player",
-                    name: this.state.playerName
-                });
-            }, 0);
-        }
+        this.onLeave(e, pageX, pageY, {
+            type: "sharedScreen"
+        });
+    }
+    onReset(e) {
+        e.preventDefault();
+        const currentReturn = this.props.location.query.return;
+        this.context.router.transitionTo(this.context.router.makePath("/setup-device", {return: currentReturn}));
     }
     onLeave(e, pageX, pageY, playerInfo) {
-        const rippleStyle = getRippleStyleFromPosition(window.innerWidth, this.windowHeight, pageX, pageY);
+        const rippleStyle = getRippleStyleFromPosition(window.innerWidth, window.innerHeight, pageX, pageY);
         this.setState({
             leavingRippleStyle: Object.assign({
                 zIndex: 100
@@ -71,59 +55,40 @@ export default class SetupPlayer extends React.Component {
         }, 2000);
     }
     componentWillAppear(callback)  {
-        console.log("componentWillAppear", "SetupPlayer");
+        console.log("componentWillAppear", "SetupSharedScreen");
         this.setState({
             entering: true
         });
         setTimeout(callback, 0);
     }
     componentDidAppear() {
-        console.log("componentDidAppear", "SetupPlayer");
+        console.log("componentDidAppear", "SetupSharedScreen");
         this.setState({
             entering: false
         });
     }
     componentWillEnter(callback)  {
-        console.log("componentWillEnter", "SetupPlayer");
+        console.log("componentWillEnter", "SetupSharedScreen");
         this.setState({
             entering: true
         });
         setTimeout(callback, 0);
     }
     componentDidEnter() {
-        console.log("componentDidEnter", "SetupPlayer");
+        console.log("componentDidEnter", "SetupSharedScreen");
         this.setState({
             entering: false
         });
     }
     componentWillLeave(callback) {
-        console.log("componentWillLeave", "SetupPlayer");
+        console.log("componentWillLeave", "SetupSharedScreen");
         this.setState({
             leaving: true
         });
         setTimeout(callback, 300);
     }
     componentDidLeave() {
-        console.log("componentDidLeave", "SetupPlayer");
-    }
-    onPlayerNameChange() {
-        this.validatePlayerName();
-    }
-    validatePlayerName() {
-        const playerName = this.refs.playerName.getValue();
-        let errorText = undefined;
-        if (playerName.length === 0) {
-            errorText = "You need to enter a name.";
-        } else if (playerName.length >= 25) {
-            errorText = "Your name is too long.";
-        } else if (!playerName.match(/^[a-zA-Z0-9 ]+$/)) {
-            errorText = "Your name should only contain letters, numbers and spaces.";
-        }
-        this.setState({
-            playerName,
-            playerNameErrorText: errorText
-        });
-        return errorText;
+        console.log("componentDidLeave", "SetupSharedScreen");
     }
     render() {
         const xsmallDevice = isXsmall(this.context.windowWidth);
@@ -150,7 +115,7 @@ export default class SetupPlayer extends React.Component {
                     <mui.IconButton style={{
                                         marginLeft: -16,
                                         marginRight: 8,
-                                        marginTop: 8,
+                                        marginTop: 8
                                     }}
                                     onTouchTap={this.onReset.bind(this)}>
                         <mui.FontIcon className="material-icons"
@@ -164,11 +129,11 @@ export default class SetupPlayer extends React.Component {
                             padding: 0,
                             display: "inline-block"
                         }}>
-                        Player
+                        Shared screen
                     </h1>
                 </Title>
                 <TransitionPage style={{
-                    backgroundColor: Colors.green400,
+                    backgroundColor: Colors.brown400,
                     color: Colors.darkWhite,
                     flexGrow: 1,
                     flexShrink: 0,
@@ -183,27 +148,19 @@ export default class SetupPlayer extends React.Component {
                         padding: 24,
                         boxSizing: "border-box"
                     }}>
-                        <h1>Hi</h1>
-
+                        <h1>Wave, you're on TV</h1>
                         <p style={{
-                        fontSize: 14,
-                        fontWeight: 400,
-                        lineHeight: 1.71429
-                    }}>You need to enter a name so that other players know who you are.</p>
-                        <mui.TextField ref="playerName"
-                                       hintText="Name"
-                                       fullWidth={true}
-                                       style={{
-                                       fontSize: 24
-                                   }}
-                                       value={this.state.playerName}
-                                       errorText={this.state.playerNameErrorText}
-                                       onChange={this.validatePlayerName.bind(this)}
-                                       onEnterKeyDown={this.onGameOn.bind(this)}/>
-                        <mui.RaisedButton primary={true} style={{
-                        alignSelf: "flex-end",
-                        marginTop: 24
-                    }} label="Game on" onTouchTap={this.onGameOn.bind(this)}/>
+                            fontSize: 14,
+                            fontWeight: 400,
+                            lineHeight: 1.71429
+                        }}>This device will not participate in games as a player.</p>
+                        <mui.RaisedButton primary={true}
+                                          style={{
+                                              alignSelf: "flex-end",
+                                              marginTop: 24
+                                          }}
+                                          label="Continue"
+                                          onTouchTap={this.onGameOn.bind(this)} />
                     </div>
                 </TransitionPage>
                 {ripple}
@@ -211,7 +168,7 @@ export default class SetupPlayer extends React.Component {
         );
     }
 }
-SetupPlayer.contextTypes = {
+SetupSharedScreen.contextTypes = {
     muiTheme: React.PropTypes.object,
     windowWidth: React.PropTypes.number,
     setPlayerInfo: React.PropTypes.func,

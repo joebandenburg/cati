@@ -2,29 +2,36 @@ import "core-js";
 import "whatwg-fetch";
 import injectTapEventPlugin from "react-tap-event-plugin";
 import React from "react";
-import Router from "react-router";
+import { Router, Route } from "react-router";
+import { history } from "react-router/lib/BrowserHistory";
 import App from "./components/App";
-import Home from "./components/Home";
 import Game from "./components/Game";
+import Home from "./components/Home";
 import CreateGame from "./components/CreateGame";
+import SetupDevice from "./components/SetupDevice";
+import SetupPlayer from "./components/SetupPlayer";
+import SetupSharedScreen from "./components/SetupSharedScreen";
 
 injectTapEventPlugin();
 
-const Route = Router.Route;
-const DefaultRoute = Router.DefaultRoute;
+function shouldRedirectToDeviceSetup(nextState, transition) {
+    if (!localStorage["playerInfo"]) {
+        transition.to("/setup-device", { return: nextState.location.pathname });
+    }
+}
 
-const routes = (
-    <Route handler={App}>
-        <DefaultRoute handler={Home}/>
-        <Route name="game/:id" handler={Game} />
-        <Route name="create-game" handler={CreateGame} />
-        <Route name="join-game" handler={Game} />
-    </Route>
-);
-
-Router.run(routes, Router.HistoryLocation, (Root) =>
-    React.render(
-        <Root />,
-        document.getElementById("app")
-    )
+React.render(
+    <Router history={history}>
+        <Route component={App}>
+            <Route path="/" component={Home} onEnter={shouldRedirectToDeviceSetup} />
+            <Route path="game/:id" component={Game} onEnter={shouldRedirectToDeviceSetup} />
+            <Route path="create-game" component={CreateGame} onEnter={shouldRedirectToDeviceSetup} />
+            <Route path="join-game" component={Game} onEnter={shouldRedirectToDeviceSetup} />
+            <Route path="setup-device" component={SetupDevice}>
+                <Route path="player" component={SetupPlayer} />
+                <Route path="shared" component={SetupSharedScreen} />
+            </Route>
+        </Route>
+    </Router>,
+    document.getElementById("app")
 );
