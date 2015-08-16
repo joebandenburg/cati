@@ -2,70 +2,9 @@ import React from "react";
 import { Link } from "react-router";
 import mui from "material-ui";
 import {isLarge, isXsmall, calcWidth, gutterWidth} from "../util/device";
+import ActionBox from "./ActionBox";
 
 const Colors = mui.Styles.Colors;
-
-class HomeFeature extends React.Component {
-    constructor() {
-        super();
-        this.state = {
-            hovered: false
-        };
-    }
-    onMouseOver() {
-        this.setState({
-            hovered: true
-        });
-    }
-
-    onMouseOut() {
-        this.setState({
-            hovered: false
-        });
-    }
-    render() {
-        const zDepth = (this.state.hovered) ? 4 : 1;
-        const columns = isXsmall(this.context.windowWidth) ? 2 : 3;
-        const width = calcWidth(this.context.windowWidth, columns);
-        const paperStyle = {
-            width,
-            marginRight: (this.props.lastChild) ? 0 : gutterWidth(this.context.windowWidth)
-        };
-        const captionStyle = {
-            fontSize: 20,
-            fontWeight: 500,
-            color: Colors.darkBlack,
-            letterSpacing: 0,
-            lineHeight: "64px",
-            textAlign: "center"
-        };
-        const iconStyle = {
-            backgroundColor: this.props.color,
-            height: width,
-            width,
-            fontSize: 0.6 * width,
-            lineHeight: width + "px",
-            textAlign: "center",
-            color: Colors.darkWhite,
-            boxSizing: "border-box"
-        };
-        return (
-            <mui.Paper zDepth={zDepth}
-                       onMouseOver={this.onMouseOver.bind(this)}
-                       onMouseOut={this.onMouseOut.bind(this)}
-                       style={paperStyle}
-                       rounded={true}>
-                <Link to={this.props.route}>
-                    <mui.FontIcon style={iconStyle} className="material-icons">{this.props.icon}</mui.FontIcon>
-                </Link>
-                <h3 style={captionStyle}>{this.props.caption}</h3>
-            </mui.Paper>
-        );
-    }
-}
-HomeFeature.contextTypes = {
-    windowWidth: React.PropTypes.number
-};
 
 export default class Home extends React.Component {
     constructor() {
@@ -106,11 +45,35 @@ export default class Home extends React.Component {
             entering: false
         });
     }
+    componentWillLeave(callback) {
+        console.log("componentWillLeave", "Home");
+        this.setState({
+            leaving: true
+        });
+        setTimeout(callback, 1000);
+    }
+    onJoinGame(e) {
+        e.preventDefault();
+        setTimeout(() => {
+            this.context.router.transitionTo("/join-game");
+        }, 400);
+    }
+    onCreateGame(e) {
+        e.preventDefault();
+        setTimeout(() => {
+            this.context.router.transitionTo("/create-game");
+        }, 400);
+    }
     render() {
         const xsmallDevice = isXsmall(this.context.windowWidth);
         const largeDevice = isLarge(this.context.windowWidth);
+        const columns = xsmallDevice ? 2 : largeDevice ? 3 : 4;
+        const pageWidth = calcWidth(this.context.windowWidth, columns * 2);
+        const boxWidth = (xsmallDevice || pageWidth === "100%") ? undefined : pageWidth / 2;
+        const boxHeight = xsmallDevice ? Math.min(this.context.windowWidth, 400) : boxWidth;
         const verticalPadding = xsmallDevice ? 24 : 24;
-        const titleHeight = 118 + verticalPadding * 2;
+        const titleHeight = xsmallDevice ? 128 : largeDevice ? 192 : 160;
+        const layout = xsmallDevice ? "column" : "row";
         const style = {
             backgroundColor: this.context.muiTheme.component.appBar.color,
             color: this.context.muiTheme.component.appBar.textColor,
@@ -118,7 +81,7 @@ export default class Home extends React.Component {
             paddingBottom: verticalPadding,
             paddingLeft: 24,
             paddingRight: 24,
-            height: this.state.entering ? "100%" : titleHeight,
+            height: (this.state.entering || this.state.leaving) ? "100%" : titleHeight,
             transition: "all 1s",
             position: "fixed",
             left: 0,
@@ -137,13 +100,14 @@ export default class Home extends React.Component {
         const h1Style = {
             fontWeight: 400,
             fontSize: (xsmallDevice) ? 24 : (largeDevice) ? 45 : 34,
-            opacity: this.state.entering ? 0 : 1,
-            transition: "all 0.5s ease-in 0.5s",
+            opacity: (this.state.entering || this.state.leaving) ? 0 : 1,
+            transition: this.state.leaving ? "all 0.5s" : "all 0.5s ease-in 0.5s",
         };
         const h2Style = {
             fontWeight: 300,
-            opacity: this.state.entering ? 0 : 1,
-            transition: "all 0.5s ease-in 0.75s"
+            fontSize: (xsmallDevice) ? 18 : 24,
+            opacity: (this.state.entering || this.state.leaving) ? 0 : 1,
+            transition: this.state.leaving ? "all 0.5s" : "all 0.5s ease-in 0.75s"
         };
         const otherStyle = {
             position: "absolute",
@@ -151,10 +115,10 @@ export default class Home extends React.Component {
             left: 0,
             right: 0,
             display: "flex",
+            flexDirection: layout,
             justifyContent: "center",
-            paddingTop: verticalPadding,
-            paddingBottom: verticalPadding,
-            color: Colors.darkBlack
+            color: Colors.darkBlack,
+            marginTop: xsmallDevice ? 0 : largeDevice ? 64 : 32
         };
         return (
             <div>
@@ -165,8 +129,24 @@ export default class Home extends React.Component {
                     </div>
                 </mui.Paper>
                 <div style={otherStyle}>
-                    <HomeFeature caption="Create Game" route="create-game" icon="add_circle_outline" color={Colors.red300} />
-                    <HomeFeature caption="Join Game" route="join-game" icon="play_for_work" color={Colors.amber300} lastChild={true} />
+                    <ActionBox
+                        backgroundColor={Colors.deepOrange500}
+                        hoverColor={Colors.deepOrange400}
+                        textColor={Colors.darkWhite}
+                        width={boxWidth}
+                        height={boxHeight}
+                        icon="play_for_work"
+                        title="Join game"
+                        onTouchTap={this.onJoinGame.bind(this)} />
+                    <ActionBox
+                        backgroundColor={Colors.purple500}
+                        hoverColor={Colors.purple400}
+                        textColor={Colors.darkWhite}
+                        width={boxWidth}
+                        height={boxHeight}
+                        icon="add_circle_outline"
+                        title="Create game"
+                        onTouchTap={this.onCreateGame.bind(this)} />
                 </div>
             </div>
         );

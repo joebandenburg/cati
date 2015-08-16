@@ -1,4 +1,5 @@
 import React from "react";
+import mui from "material-ui";
 import SocketIO from "socket.io-client";
 import _ from "lodash";
 import Lobby from "./Lobby";
@@ -6,6 +7,8 @@ import Answering from "./Answering";
 import Answered from "./Answered";
 import Voting from "./Voting";
 import Scores from "./Scores";
+
+const Colors = mui.Styles.Colors;
 
 // TODO: Factor out commonality with server
 const stateType = {
@@ -51,7 +54,23 @@ class Game extends React.Component {
     }
     render() {
         if (this.state.loading) {
-            return <div>Joining...</div>;
+            return (
+                <div style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: Colors.blue500,
+                    color: Colors.darkWhite
+                }}>
+                    <mui.CircularProgress mode="indeterminate" size={2} color={Colors.darkWhite} />
+                </div>
+            );
         }
         const player = this.state.players[this.state.playerIndex];
         const otherPlayers = _.without(this.state.players, player);
